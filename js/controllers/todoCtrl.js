@@ -31,7 +31,7 @@ if (!roomId || roomId.length === 0) {
 }
 
 // TODO: Please change this URL for your app
-var firebaseURL = "https://classquestion.firebaseio.com/";
+var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
 
 
 $scope.roomId = roomId;
@@ -130,11 +130,22 @@ $scope.editTodo = function (todo) {
 	$scope.originalTodo = angular.extend({}, $scope.editedTodo);
 };
 
-$scope.addEcho = function (todo) {
+$scope.upEcho = function (todo) {
 	$scope.editedTodo = todo;
 	todo.echo = todo.echo + 1;
 	// Hack to order using this order.
 	todo.order = todo.order -1;
+	$scope.todos.$save(todo);
+
+	// Disable the button
+	$scope.$storage[todo.$id] = "echoed";
+};
+
+$scope.downEcho = function (todo) {
+	$scope.editedTodo = todo;
+	todo.echo = todo.echo - 1;
+	// Hack to order using this order.
+	todo.order = todo.order +1;
 	$scope.todos.$save(todo);
 
 	// Disable the button
