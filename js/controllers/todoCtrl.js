@@ -97,7 +97,37 @@ $scope.getFirstAndRestSentence = function($string) {
 	return [head, desc];
 };
 
+// Post question
 $scope.addTodo = function () {
+	var newTodo = $scope.input.wholeMsg.trim();
+
+	// No input, so just do nothing
+	if (!newTodo.length) {
+		return;
+	}
+
+	var firstAndLast = $scope.getFirstAndRestSentence(newTodo);
+	var head = firstAndLast[0];
+	var desc = firstAndLast[1];
+
+	$scope.todos.$add({
+		wholeMsg: newTodo,
+		head: head,
+		headLastChar: head.slice(-1),
+		desc: desc,
+		linkedDesc: Autolinker.link(desc, {newWindow: false, stripPrefix: false}),
+		completed: false,
+		timestamp: new Date().getTime(),
+		tags: "...",
+		echo: 0,
+		order: 0
+	});
+	// remove the posted question in the input
+	$scope.input.wholeMsg = '';
+};
+
+// Reply to Question
+$scope.replyTodo = function () {
 	var newTodo = $scope.input.wholeMsg.trim();
 
 	// No input, so just do nothing
