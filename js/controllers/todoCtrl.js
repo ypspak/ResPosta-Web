@@ -12,8 +12,10 @@ function ($scope, $location, $firebaseArray, $sce, $localStorage, $window) {
 	// set local storage
 	$scope.$storage = $localStorage;
 
+	// set max number of questions
 	var scrollCountDelta = 10;
 	$scope.maxQuestion = scrollCountDelta;
+	$scope.maxReply = 5;
 
 	/*
 	$(window).scroll(function(){
@@ -35,6 +37,7 @@ if (!roomId || roomId.length === 0) {
 var firebaseURL = "https://questionroomtesting.firebaseIO.com/";
 
 
+// create variables for firebase DB
 $scope.roomId = roomId;
 var url = firebaseURL + roomId + "/questions/";
 var urlReplies = firebaseURL + roomId + "/replies/";
@@ -52,7 +55,8 @@ $scope.todosReplies = $firebaseArray(queryReplies);
 //$scope.input.wholeMsg = '';
 $scope.editedTodo = null;
 
-// pre-processing for collection
+
+// pre-processing for collection - Questions
 $scope.$watchCollection('todos', function () {
 	var total = 0;
 	var remaining = 0;
@@ -81,6 +85,38 @@ $scope.$watchCollection('todos', function () {
 	$scope.allChecked = remaining === 0;
 	$scope.absurl = $location.absUrl();
 }, true);
+
+
+// pre-processing for collection - Replies
+$scope.$watchCollection('todosReplies', function () {
+	var total = 0;
+	var remaining = 0;
+	$scope.todosReplies.forEach(function (reply) {
+		// Skip invalid entries so they don't break the entire app.
+		//if (!reply || !reply.head ) {
+		//	return;
+		//}
+
+		total++;
+		if (reply.completed === false) {
+			remaining++;
+		}
+
+		// set time
+		reply.dateString = new Date(reply.timestamp).toString();
+		reply.tags = reply.wholeMsg.match(/#\w+/g);
+
+		reply.trustedDesc = $sce.trustAsHtml(reply.linkedDesc);
+		
+	});
+
+	//$scope.totalCount = total;
+	//$scope.remainingCount = remaining;
+	//$scope.completedCount = total - remaining;
+	//$scope.allChecked = remaining === 0;
+	//$scope.absurl = $location.absUrl();
+}, true);
+
 
 // Get the first sentence and rest
 $scope.getFirstAndRestSentence = function($string) {
@@ -135,14 +171,6 @@ $scope.addTodo = function () {
 	$scope.input.wholeMsg = '';
 };
 
-// Reply Counter to Question
-$scope.replyCounterTodo = function (todo) {
-	
-	//$scope.editedTodo = todo;
-	//todo.replies = todo.replies + 1;
-	//$scope.todos.$save(todo);
-	
-};
 
 // Reply to Question
 $scope.replyTodo = function (todo) {
@@ -176,10 +204,10 @@ $scope.replyTodo = function (todo) {
 		order: 0,
 		parentID: todo.$id,
 		replies: 0
-	}
-);
+	});
 	// remove the posted question in the input
 	todo.wholeMsgReply = '';
+	$scope.todos.$save(todo);
 	
 };
 
