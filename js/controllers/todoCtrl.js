@@ -119,6 +119,7 @@ $scope.addTodo = function () {
 
 	$scope.todos.$add({
 		wholeMsg: newTodo,
+		wholeMsgReply: '',
 		head: head,
 		headLastChar: head.slice(-1),
 		desc: desc,
@@ -146,12 +147,12 @@ $scope.replyCounterTodo = function (todo) {
 // Reply to Question
 $scope.replyTodo = function (todo) {
 	
-	var newTodo = $scope.input.wholeMsg.trim();
+	var newTodo = todo.wholeMsgReply.trim();
 	
 	// No input, so just do nothing
-	//if (!newTodo.length) {
-	//	return;
-	//}
+	if (!newTodo.length) {
+		return;
+	}
 	
 	$scope.editedTodo = todo;
 	todo.replies = todo.replies + 1;
@@ -163,6 +164,7 @@ $scope.replyTodo = function (todo) {
 	
 	$scope.todosReplies.$add({
 		wholeMsg: newTodo,
+		wholeMsgReply: '',
 		head: head,
 		headLastChar: head.slice(-1),
 		desc: desc,
@@ -177,7 +179,7 @@ $scope.replyTodo = function (todo) {
 	}
 );
 	// remove the posted question in the input
-	$scope.input.wholeMsg = '';
+	todo.wholeMsgReply = '';
 	
 };
 
