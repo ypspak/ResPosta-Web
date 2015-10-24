@@ -15,7 +15,7 @@ function ($scope, $location, $firebaseArray, $sce, $localStorage, $window) {
 	// set max number of questions
 	var scrollCountDelta = 10;
 	$scope.maxQuestion = scrollCountDelta;
-	$scope.maxReply = 5;
+	$scope.maxReply = 2;
 
 	/*
 	$(window).scroll(function(){
@@ -33,8 +33,7 @@ if (!roomId || roomId.length === 0) {
 }
 
 // TODO: Please change this URL for your app
-//var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
-var firebaseURL = "https://questionroomtesting.firebaseIO.com/";
+var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
 
 
 // create variables for firebase DB
@@ -85,7 +84,6 @@ $scope.$watchCollection('todos', function () {
 	$scope.allChecked = remaining === 0;
 	$scope.absurl = $location.absUrl();
 }, true);
-
 
 // pre-processing for collection - Replies
 $scope.$watchCollection('todosReplies', function () {
