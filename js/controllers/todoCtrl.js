@@ -31,22 +31,28 @@ if (!roomId || roomId.length === 0) {
 }
 
 // TODO: Please change this URL for your app
-var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
+//var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
+var firebaseURL = "https://questionroomtesting.firebaseIO.com/";
 
 
 $scope.roomId = roomId;
 var url = firebaseURL + roomId + "/questions/";
+var urlReplies = firebaseURL + roomId + "/replies/";
 var echoRef = new Firebase(url);
+var echoRefReplies = new Firebase(urlReplies);
 
 var query = echoRef.orderByChild("order");
+var queryReplies = echoRefReplies.orderByChild("order");
+
 // Should we limit?
 //.limitToFirst(1000);
 $scope.todos = $firebaseArray(query);
+$scope.todosReplies = $firebaseArray(queryReplies);
 
 //$scope.input.wholeMsg = '';
 $scope.editedTodo = null;
 
-// pre-precessing for collection
+// pre-processing for collection
 $scope.$watchCollection('todos', function () {
 	var total = 0;
 	var remaining = 0;
@@ -66,6 +72,7 @@ $scope.$watchCollection('todos', function () {
 		todo.tags = todo.wholeMsg.match(/#\w+/g);
 
 		todo.trustedDesc = $sce.trustAsHtml(todo.linkedDesc);
+		
 	});
 
 	$scope.totalCount = total;
@@ -120,26 +127,41 @@ $scope.addTodo = function () {
 		timestamp: new Date().getTime(),
 		tags: "...",
 		echo: 0,
-		order: 0
+		order: 0,
+		replies: 0
 	});
 	// remove the posted question in the input
 	$scope.input.wholeMsg = '';
 };
 
+// Reply Counter to Question
+$scope.replyCounterTodo = function (todo) {
+	
+	//$scope.editedTodo = todo;
+	//todo.replies = todo.replies + 1;
+	//$scope.todos.$save(todo);
+	
+};
+
 // Reply to Question
-$scope.replyTodo = function () {
+$scope.replyTodo = function (todo) {
+	
 	var newTodo = $scope.input.wholeMsg.trim();
-
+	
 	// No input, so just do nothing
-	if (!newTodo.length) {
-		return;
-	}
-
+	//if (!newTodo.length) {
+	//	return;
+	//}
+	
+	$scope.editedTodo = todo;
+	todo.replies = todo.replies + 1;
+	$scope.todos.$save(todo);
+	
 	var firstAndLast = $scope.getFirstAndRestSentence(newTodo);
 	var head = firstAndLast[0];
 	var desc = firstAndLast[1];
-
-	$scope.todos.$add({
+	
+	$scope.todosReplies.$add({
 		wholeMsg: newTodo,
 		head: head,
 		headLastChar: head.slice(-1),
@@ -149,11 +171,17 @@ $scope.replyTodo = function () {
 		timestamp: new Date().getTime(),
 		tags: "...",
 		echo: 0,
-		order: 0
-	});
+		order: 0,
+		parentID: todo.$id,
+		replies: 0
+	}
+);
 	// remove the posted question in the input
 	$scope.input.wholeMsg = '';
+	
 };
+
+
 
 $scope.editTodo = function (todo) {
 	$scope.editedTodo = todo;
