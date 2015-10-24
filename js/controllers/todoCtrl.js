@@ -12,8 +12,10 @@ function ($scope, $location, $firebaseArray, $sce, $localStorage, $window) {
 	// set local storage
 	$scope.$storage = $localStorage;
 
+	// set max number of questions
 	var scrollCountDelta = 10;
 	$scope.maxQuestion = scrollCountDelta;
+	$scope.maxReply = 5;
 
 	/*
 	$(window).scroll(function(){
@@ -31,22 +33,30 @@ if (!roomId || roomId.length === 0) {
 }
 
 // TODO: Please change this URL for your app
-var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
+//var firebaseURL = "https://cmkquestionsdb.firebaseio.com/";
+var firebaseURL = "https://questionroomtesting.firebaseIO.com/";
 
 
+// create variables for firebase DB
 $scope.roomId = roomId;
 var url = firebaseURL + roomId + "/questions/";
+var urlReplies = firebaseURL + roomId + "/replies/";
 var echoRef = new Firebase(url);
+var echoRefReplies = new Firebase(urlReplies);
 
 var query = echoRef.orderByChild("order");
+var queryReplies = echoRefReplies.orderByChild("order");
+
 // Should we limit?
 //.limitToFirst(1000);
 $scope.todos = $firebaseArray(query);
+$scope.todosReplies = $firebaseArray(queryReplies);
 
 //$scope.input.wholeMsg = '';
 $scope.editedTodo = null;
 
-// pre-precessing for collection
+
+// pre-processing for collection - Questions
 $scope.$watchCollection('todos', function () {
 	var total = 0;
 	var remaining = 0;
@@ -66,6 +76,7 @@ $scope.$watchCollection('todos', function () {
 		todo.tags = todo.wholeMsg.match(/#\w+/g);
 
 		todo.trustedDesc = $sce.trustAsHtml(todo.linkedDesc);
+		
 	});
 
 	$scope.totalCount = total;
@@ -74,6 +85,38 @@ $scope.$watchCollection('todos', function () {
 	$scope.allChecked = remaining === 0;
 	$scope.absurl = $location.absUrl();
 }, true);
+
+
+// pre-processing for collection - Replies
+$scope.$watchCollection('todosReplies', function () {
+	var total = 0;
+	var remaining = 0;
+	$scope.todosReplies.forEach(function (reply) {
+		// Skip invalid entries so they don't break the entire app.
+		//if (!reply || !reply.head ) {
+		//	return;
+		//}
+
+		total++;
+		if (reply.completed === false) {
+			remaining++;
+		}
+
+		// set time
+		reply.dateString = new Date(reply.timestamp).toString();
+		reply.tags = reply.wholeMsg.match(/#\w+/g);
+
+		reply.trustedDesc = $sce.trustAsHtml(reply.linkedDesc);
+		
+	});
+
+	//$scope.totalCount = total;
+	//$scope.remainingCount = remaining;
+	//$scope.completedCount = total - remaining;
+	//$scope.allChecked = remaining === 0;
+	//$scope.absurl = $location.absUrl();
+}, true);
+
 
 // Get the first sentence and rest
 $scope.getFirstAndRestSentence = function($string) {
@@ -112,6 +155,7 @@ $scope.addTodo = function () {
 
 	$scope.todos.$add({
 		wholeMsg: newTodo,
+		wholeMsgReply: '',
 		head: head,
 		headLastChar: head.slice(-1),
 		desc: desc,
@@ -120,27 +164,35 @@ $scope.addTodo = function () {
 		timestamp: new Date().getTime(),
 		tags: "...",
 		echo: 0,
-		order: 0
+		order: 0,
+		replies: 0
 	});
 	// remove the posted question in the input
 	$scope.input.wholeMsg = '';
 };
 
-// Reply to Question
-$scope.replyTodo = function () {
-	var newTodo = $scope.input.wholeMsg.trim();
 
+// Reply to Question
+$scope.replyTodo = function (todo) {
+	
+	var newTodo = todo.wholeMsgReply.trim();
+	
 	// No input, so just do nothing
 	if (!newTodo.length) {
 		return;
 	}
-
+	
+	$scope.editedTodo = todo;
+	todo.replies = todo.replies + 1;
+	$scope.todos.$save(todo);
+	
 	var firstAndLast = $scope.getFirstAndRestSentence(newTodo);
 	var head = firstAndLast[0];
 	var desc = firstAndLast[1];
-
-	$scope.todos.$add({
+	
+	$scope.todosReplies.$add({
 		wholeMsg: newTodo,
+		wholeMsgReply: '',
 		head: head,
 		headLastChar: head.slice(-1),
 		desc: desc,
@@ -149,11 +201,17 @@ $scope.replyTodo = function () {
 		timestamp: new Date().getTime(),
 		tags: "...",
 		echo: 0,
-		order: 0
+		order: 0,
+		parentID: todo.$id,
+		replies: 0
 	});
 	// remove the posted question in the input
-	$scope.input.wholeMsg = '';
+	todo.wholeMsgReply = '';
+	$scope.todos.$save(todo);
+	
 };
+
+
 
 $scope.editTodo = function (todo) {
 	$scope.editedTodo = todo;
