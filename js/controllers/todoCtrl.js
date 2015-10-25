@@ -64,7 +64,7 @@ $scope.$watchCollection('todos', function () {
 		if (!todo || !todo.head ) {
 			return;
 		}
-
+		
 		total++;
 		if (todo.completed === false) {
 			remaining++;
@@ -74,7 +74,7 @@ $scope.$watchCollection('todos', function () {
 		todo.dateString = new Date(todo.timestamp).toString();
 		todo.tags = todo.wholeMsg.match(/#\w+/g);
 
-		todo.trustedDesc = $sce.trustAsHtml(todo.linkedDesc);
+		todo.trustedDesc = $sce.trustAsHtml($scope.XssProtection(todo.linkedDesc));
 		
 	});
 
@@ -104,7 +104,7 @@ $scope.$watchCollection('todosReplies', function () {
 		reply.dateString = new Date(reply.timestamp).toString();
 		reply.tags = reply.wholeMsg.match(/#\w+/g);
 
-		reply.trustedDesc = $sce.trustAsHtml(reply.linkedDesc);
+		reply.trustedDesc = $sce.trustAsHtml($scope.XssProtection(reply.linkedDesc));
 		
 	});
 
@@ -149,7 +149,7 @@ $scope.addTodo = function () {
 
 	var firstAndLast = $scope.getFirstAndRestSentence(newTodo);
 	var head = firstAndLast[0];
-	var desc = firstAndLast[1];
+	var desc = $scope.XssProtection(firstAndLast[1]);
 
 	$scope.todos.$add({
 		wholeMsg: newTodo,
@@ -186,7 +186,7 @@ $scope.replyTodo = function (todo) {
 	
 	var firstAndLast = $scope.getFirstAndRestSentence(newTodo);
 	var head = firstAndLast[0];
-	var desc = firstAndLast[1];
+	var desc = $scope.XssProtection(firstAndLast[1]);
 	
 	$scope.todosReplies.$add({
 		wholeMsg: newTodo,
@@ -329,5 +329,31 @@ angular.element($window).bind("scroll", function() {
 		$scope.$apply();
 	}
 });
+
+$scope.XssProtection = function($string) {
+    //var filteredMsg = "<pre>";
+	var filteredMsg = '';
+    var inHashtag = false;
+    for (var i = 0; i < $string.length; ++i) {
+		var ch = $string.charAt(i);
+		if (ch == '<') {
+	    	filteredMsg+="&lt;";
+		} else if (ch == '>') {
+	    	filteredMsg+="&gt;";
+		} else if (ch == '\"') {
+	    	filteredMsg+="&quot;";
+		} else if (ch == '#' && !inHashtag) {
+	    	inHashtag = true;
+	    	filteredMsg+="<strong>"+ch;
+		} else if (inHashtag && (ch == ' ' || ch == '\n')) {
+	    	inHashtag = false;
+	    	filteredMsg+="</strong>"+ch;
+		} else {
+	    	filteredMsg+=ch;
+		}
+    }
+    //filteredMsg+="</pre>";
+    return filteredMsg;
+};
 
 }]);
