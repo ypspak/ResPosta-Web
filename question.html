@@ -27,7 +27,7 @@
 
 </head>
 <body ng-controller="TodoCtrl">
-	<!-- CSS style for web header -->
+
 	<style>
 		h1{
 			font-family: 'Merriweather Sans', sans-serif;
@@ -86,21 +86,6 @@ ng-model="input.wholeMsg" autofocus></textarea>
 	<!-- iterate questions -->
 	<span class="list-group-item" ng-repeat="todo in todos | filter:input | questionFilter:maxQuestion" ng-class="{completed: todo.completed, editing: todo == editedTodo}">
 		<!-- display questions -->
-		<!-- CSS style for questions -->
-		<style>
-			.list-group-item-heading{
-				font-family: 'Merriweather Sans', sans-serif;
-				font-style: italic;
-			}
-			.list-group-item-text{
-				font-family: 'Merriweather Sans', sans-serif;
-				font-style: normal;
-			}
-			.input-group{
-				font-family: 'Merriweather Sans', sans-serif;
-				font-style: normal;
-			}
-		</style>
 		<h4 class="list-group-item-heading" ng-switch on="todo.headLastChar">
 			<span class="label label-danger" ng-show="todo.new">New</span>
 			<span class="badge">{{todo.echo}}</span>
